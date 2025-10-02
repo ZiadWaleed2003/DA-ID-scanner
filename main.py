@@ -5,6 +5,7 @@ import csv
 from google.oauth2.service_account import Credentials
 import os
 import traceback
+from zoneinfo import ZoneInfo
 
 # Single spreadsheet ID
 SHEET_ID = "1o1cjx-GzJcw7_bXfkLtkDXDzmi6bLj6GdLpab-sHoY8"
@@ -83,8 +84,9 @@ def scan_id(driver_id, station):
         st.error("Please enter a Driver ID")
         return
 
-    scan_time = datetime.now().strftime('%H:%M:%S')
-    scan_date = datetime.now().strftime('%Y-%m-%d')
+    now_dubai = datetime.now(ZoneInfo("Asia/Dubai"))
+    scan_time = now_dubai.strftime('%H:%M:%S')
+    scan_date = now_dubai.strftime('%Y-%m-%d')
 
     # Save locally (memory)
     st.session_state.local_data.append((driver_id, scan_time, scan_date, station))
@@ -117,7 +119,7 @@ def save_to_csv(driver_id, scan_time, scan_date, station):
         writer = csv.writer(file)
         if not file_exists:
             writer.writerow(["Driver ID", "Scan Time", "Scan Date", "Station", "Saved At"])
-        writer.writerow([driver_id, scan_time, scan_date, station, datetime.now().strftime('%Y-%m-%d %H:%M:%S')])
+        writer.writerow([driver_id, scan_time, scan_date, station, datetime.now(ZoneInfo("Asia/Dubai")).strftime('%Y-%m-%d %H:%M:%S')])
 
 def sync_single_scan(driver_id, scan_time, scan_date, station):
     """Push a single scan to the Google Sheet for the selected station."""
@@ -140,7 +142,7 @@ def sync_single_scan(driver_id, scan_time, scan_date, station):
         # Write data into that row (new gspread syntax, avoids warning)
         sheet.update(
             range_name=f"A{next_row}:E{next_row}",
-            values=[[driver_id, scan_time, scan_date, station, datetime.now().strftime('%Y-%m-%d %H:%M:%S')]]
+            values=[[driver_id, scan_time, scan_date, station, datetime.now(ZoneInfo("Asia/Dubai")).strftime('%Y-%m-%d %H:%M:%S')]]
         )
 
         st.session_state.status_text = f"Uploaded to {station} Google Sheet tab: {driver_id}"
